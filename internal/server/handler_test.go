@@ -72,6 +72,8 @@ func TestHandler_Update(t *testing.T) {
 			h.Update(w, r)
 
 			result := w.Result()
+			defer result.Body.Close()
+
 			assert.Equal(t, tt.want.code, result.StatusCode)
 			assert.Equal(t, tt.want.contentType, result.Header.Get("Content-Type"))
 		})
