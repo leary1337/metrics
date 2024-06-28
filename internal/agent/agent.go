@@ -64,9 +64,10 @@ func (a *Agent) sendMetric(name, metricType string, value any) error {
 	}
 
 	req.Header.Set("Content-Type", "text/plain")
-	_, err = a.client.Do(req)
+	resp, err := a.client.Do(req)
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 	return nil
 }
