@@ -1,46 +1,30 @@
 package server
 
 import (
-	"fmt"
+	"log"
 	"net/http"
-	"strconv"
-	"strings"
 )
 
-type Handler struct {
-	storage *MemStorage
+type Server struct {
+	addr string
 }
 
-func NewServerHandler(storage *MemStorage) *Handler {
-	return &Handler{storage: storage}
+func NewServer(addr string) *Server {
+	return &Server{addr: addr}
 }
 
-func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-	path := strings.TrimPrefix(r.URL.Path, "/update/")
-	parts := strings.Split(path, "/")
+func (s *Server) Run() {
+	// Создаем хранилище метрик в памяти
+	storage := NewMemStorage()
 
-	if len(parts) < 3 {
-		w.WriteHeader(http.StatusNotFound)
-		return
-	}
+	serverHandler := NewServerHandler(storage)
 
-	metricValue, err := strconv.ParseFloat(parts[2], 64)
+	mux := http.NewServeMux()
+	mux.HandleFunc(`/update/`, serverHandler.Update)
+
+	err := http.ListenAndServe(s.addr, mux)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		log.Println(err)
 		return
 	}
-
-	metric := NewMetric(parts[0], parts[1], metricValue)
-	if !metric.IsValidType() {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	h.storage.AddMetric(*metric)
-	fmt.Println(h.storage)
-	w.WriteHeader(http.StatusOK)
 }
