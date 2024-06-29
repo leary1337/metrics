@@ -21,6 +21,7 @@ func (m *MemStorage) AddMetric(metric Metric) {
 			m.metrics[metric.ID] = metric
 		} else {
 			oldMetric.SetValue(oldMetric.Value + metric.Value)
+			m.metrics[metric.ID] = oldMetric
 		}
 		return
 	}
