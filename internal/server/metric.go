@@ -1,6 +1,7 @@
 package server
 
 type Metric struct {
+	ID    string
 	Type  MetricType
 	Name  string
 	Value float64
@@ -8,6 +9,7 @@ type Metric struct {
 
 func NewMetric(mType, name string, value float64) *Metric {
 	return &Metric{
+		ID:    mType + "_" + name,
 		Type:  MetricType(mType),
 		Name:  name,
 		Value: value,
