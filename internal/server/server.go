@@ -3,6 +3,9 @@ package server
 import (
 	"log"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 type Server struct {
@@ -16,15 +19,24 @@ func NewServer(addr string) *Server {
 func (s *Server) Run() {
 	// Создаем хранилище метрик в памяти
 	storage := NewMemStorage()
-
-	serverHandler := NewServerHandler(storage)
-
-	mux := http.NewServeMux()
-	mux.HandleFunc(`/update/`, serverHandler.Update)
-
-	err := http.ListenAndServe(s.addr, mux)
+	h, err := NewHandler(storage)
 	if err != nil {
 		log.Println(err)
 		return
 	}
+
+	err = http.ListenAndServe(s.addr, MetricRouter(h))
+	if err != nil {
+		log.Println(err)
+		return
+	}
+}
+
+func MetricRouter(sh *Handler) chi.Router {
+	r := chi.NewRouter()
+	r.Use(middleware.Logger)
+	r.Get(`/`, sh.GetAllMetrics)
+	r.Get(`/value/{mType}/{mName}`, sh.GetMetricValue)
+	r.Post(`/update/{mType}/{mName}/{mValue}`, sh.Update)
+	return r
 }

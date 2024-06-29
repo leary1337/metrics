@@ -3,21 +3,22 @@ package agent
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"time"
+
+	"github.com/go-resty/resty/v2"
 )
 
 type Agent struct {
 	serverAddr string
 	m          *Metrics
-	client     *http.Client
+	client     *resty.Client
 }
 
 func NewAgent(serverAddr string) *Agent {
 	return &Agent{
 		serverAddr: serverAddr,
 		m:          &Metrics{},
-		client:     &http.Client{Timeout: 30 * time.Second},
+		client:     resty.New().SetTimeout(30 * time.Second),
 	}
 }
 
@@ -54,20 +55,11 @@ func (a *Agent) sendMetrics() error {
 }
 
 func (a *Agent) sendMetric(name, metricType string, value any) error {
-	req, err := http.NewRequest(
-		http.MethodPost,
-		fmt.Sprintf("%s/update/%s/%s/%v", a.serverAddr, metricType, name, value),
-		nil,
-	)
+	_, err := a.client.R().
+		SetHeader("Content-Type", "text/plain").
+		Post(fmt.Sprintf("%s/update/%s/%s/%v", a.serverAddr, metricType, name, value))
 	if err != nil {
 		return err
 	}
-
-	req.Header.Set("Content-Type", "text/plain")
-	resp, err := a.client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
 	return nil
 }
