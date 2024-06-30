@@ -59,7 +59,7 @@ func (a *Agent) sendMetrics() error {
 func (a *Agent) sendMetric(name, metricType string, value any) error {
 	_, err := a.client.R().
 		SetHeader("Content-Type", "text/plain").
-		Post(fmt.Sprintf("%s/update/%s/%s/%v", a.cfg.ServerAddr, metricType, name, value))
+		Post(fmt.Sprintf("http://%s/update/%s/%s/%v", a.cfg.ServerAddr, metricType, name, value))
 	if err != nil {
 		return err
 	}
