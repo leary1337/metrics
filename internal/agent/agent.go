@@ -6,25 +6,27 @@ import (
 	"time"
 
 	"github.com/go-resty/resty/v2"
+
+	"github.com/leary1337/metrics/internal/agent/config"
 )
 
 type Agent struct {
-	serverAddr string
-	m          *Metrics
-	client     *resty.Client
+	cfg    *config.Config
+	m      *Metrics
+	client *resty.Client
 }
 
-func NewAgent(serverAddr string) *Agent {
+func NewAgent(cfg *config.Config) *Agent {
 	return &Agent{
-		serverAddr: serverAddr,
-		m:          &Metrics{},
-		client:     resty.New().SetTimeout(30 * time.Second),
+		cfg:    cfg,
+		m:      &Metrics{},
+		client: resty.New().SetTimeout(30 * time.Second),
 	}
 }
 
 func (a *Agent) Run() {
-	pollTicker := time.NewTicker(PollInterval)
-	reportTicker := time.NewTicker(ReportInterval)
+	pollTicker := time.NewTicker(a.cfg.PollInterval)
+	reportTicker := time.NewTicker(a.cfg.ReportInterval)
 
 	for {
 		select {
@@ -57,7 +59,7 @@ func (a *Agent) sendMetrics() error {
 func (a *Agent) sendMetric(name, metricType string, value any) error {
 	_, err := a.client.R().
 		SetHeader("Content-Type", "text/plain").
-		Post(fmt.Sprintf("%s/update/%s/%s/%v", a.serverAddr, metricType, name, value))
+		Post(fmt.Sprintf("%s/update/%s/%s/%v", a.cfg.ServerAddr, metricType, name, value))
 	if err != nil {
 		return err
 	}

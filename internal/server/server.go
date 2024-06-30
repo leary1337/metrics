@@ -6,14 +6,16 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+
+	"github.com/leary1337/metrics/internal/server/config"
 )
 
 type Server struct {
-	addr string
+	cfg *config.Config
 }
 
-func NewServer(addr string) *Server {
-	return &Server{addr: addr}
+func NewServer(cfg *config.Config) *Server {
+	return &Server{cfg: cfg}
 }
 
 func (s *Server) Run() {
@@ -25,7 +27,7 @@ func (s *Server) Run() {
 		return
 	}
 
-	err = http.ListenAndServe(s.addr, MetricRouter(h))
+	err = http.ListenAndServe(s.cfg.ServerAddr, MetricRouter(h))
 	if err != nil {
 		log.Println(err)
 		return
