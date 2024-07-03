@@ -2,13 +2,14 @@ package config
 
 import (
 	"flag"
-	"time"
+
+	"github.com/caarlos0/env"
 )
 
 type Config struct {
-	ServerAddr     string
-	ReportInterval time.Duration
-	PollInterval   time.Duration
+	ServerAddr        string `env:"ADDRESS"`
+	ReportIntervalSec int    `env:"REPORT_INTERVAL"`
+	PollIntervalSec   int    `env:"POLL_INTERVAL"`
 }
 
 const (
@@ -17,22 +18,30 @@ const (
 	DefaultPollIntervalSec   = 2
 )
 
-func NewConfig() *Config {
-	config := &Config{}
-	flag.StringVar(&config.ServerAddr, "a", DefaultServerAddr, "server address (default localhost:8080)")
-	reportSec := flag.Int(
-		"r",
-		DefaultReportIntervalSec,
-		"frequency of sending metrics to the server in sec (default 10 seconds)",
-	)
-	pollSec := flag.Int(
-		"p",
-		DefaultPollIntervalSec,
-		"frequency of polling metrics from the runtime package in sec (default 2 seconds).",
-	)
+func NewConfig() (*Config, error) {
+	var cfg Config
+
+	// Сначала определите все флаги.
+	flag.StringVar(&cfg.ServerAddr, "a", "", "server address (default localhost:8080)")
+	flag.IntVar(&cfg.ReportIntervalSec, "r", 0, "frequency of sending metrics to the server in sec (default 10 seconds)")
+	flag.IntVar(&cfg.PollIntervalSec, "p", 0, "frequency of polling metrics from the runtime package in sec (default 2 seconds).")
 	flag.Parse()
 
-	config.ReportInterval = time.Duration(*reportSec) * time.Second
-	config.PollInterval = time.Duration(*pollSec) * time.Second
-	return config
+	// Парсинг переменных окружения.
+	err := env.Parse(&cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	// Применение значений по умолчанию, если не заданы ни флаги, ни переменные окружения.
+	if cfg.ServerAddr == "" {
+		cfg.ServerAddr = DefaultServerAddr
+	}
+	if cfg.ReportIntervalSec == 0 {
+		cfg.ReportIntervalSec = DefaultReportIntervalSec
+	}
+	if cfg.PollIntervalSec == 0 {
+		cfg.PollIntervalSec = DefaultPollIntervalSec
+	}
+	return &cfg, nil
 }

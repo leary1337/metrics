@@ -25,8 +25,8 @@ func NewAgent(cfg *config.Config) *Agent {
 }
 
 func (a *Agent) Run() {
-	pollTicker := time.NewTicker(a.cfg.PollInterval)
-	reportTicker := time.NewTicker(a.cfg.ReportInterval)
+	pollTicker := time.NewTicker(time.Second * time.Duration(a.cfg.PollIntervalSec))
+	reportTicker := time.NewTicker(time.Second * time.Duration(a.cfg.ReportIntervalSec))
 
 	for {
 		select {
