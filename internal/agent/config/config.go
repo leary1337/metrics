@@ -19,7 +19,7 @@ const (
 )
 
 func NewConfig() (*Config, error) {
-	cfg := &Config{}
+	var cfg Config
 
 	// Сначала определите все флаги.
 	flag.StringVar(&cfg.ServerAddr, "a", "", "server address (default localhost:8080)")
@@ -43,5 +43,5 @@ func NewConfig() (*Config, error) {
 	if cfg.PollIntervalSec == 0 {
 		cfg.PollIntervalSec = DefaultPollIntervalSec
 	}
-	return cfg, nil
+	return &cfg, nil
 }

@@ -13,8 +13,7 @@ type Config struct {
 const DefaultServerAddr = `localhost:8080`
 
 func NewConfig() (*Config, error) {
-
-	cfg := &Config{}
+	var cfg Config
 
 	// Сначала определите все флаги.
 	flag.StringVar(&cfg.ServerAddr, "a", DefaultServerAddr, "server address (default localhost:8080)")
@@ -30,5 +29,5 @@ func NewConfig() (*Config, error) {
 	if cfg.ServerAddr == "" {
 		cfg.ServerAddr = DefaultServerAddr
 	}
-	return cfg, nil
+	return &cfg, nil
 }
